@@ -1,8 +1,9 @@
-from main import Scrapper
-import asyncio
+import os
 import json
+import asyncio
 import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
+from main import Scrapper
 
 sc = Scrapper()
 sc.login()
@@ -22,12 +23,11 @@ def add_user(user_id, fullname_name):
             json.dump({}, fd, ensure_ascii=False, indent=4)
     with open(users_storage, 'r+', encoding='utf-8') as file:
         users = json.load(file)
-        if not users.get(key):
-            self.fresh_news.append({key: value})
-            print(f'Nem user {fullname_name} was appended')
+        if users.get(user_id) is None:
+            print(f'New user {fullname_name} was appended')
             users.update({user_id: fullname_name})
             file.seek(0)
-            json.dump(users, file, ensure_ascii=False, indent=4)
+            json.dump(dict(users), file, ensure_ascii=False, indent=4)
             file.truncate()
 
 
@@ -41,11 +41,10 @@ def get_users() -> list:
 @dp.message_handler(commands=['start'], )
 async def start_command(message: types.Message, ):
     """Функція виклику меню"""
-    first_name = message.from_user.first_name
     fullname_name = message.from_user.full_name
     user_id = message.from_user.id
     add_user(user_id, fullname_name)
-    info = f'Hello {first_name} {last_name}!\n' \
+    info = f'Hello {fullname_name}!\n' \
            f'This is Tesmanian News Chanel'
     await message.answer(info)
 
@@ -57,8 +56,8 @@ async def send_fresh_news():
     if news:
         for article in news:
             for user in users:
-                info = f'{article.values()}\n' \
-                       f'{article.keys()}'
+                info = f'{list(article.values())[0]}\n' \
+                       f'{list(article.keys())[0]}'
                 print(f'News was sent to {user}')
                 await bot.send_message(user, text=info)
 

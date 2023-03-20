@@ -61,7 +61,7 @@ class Scrapper:
         with open(self.storage, 'r+', encoding='utf-8') as file:
             self.all_records = json.load(file)
             for key, value in articles.items():
-                if not self.all_records.get(key):
+                if self.all_records.get(key) is None:
                     self.fresh_news.append({key: value})
                     print(f'Fresh news was appended')
             self.all_records.update(articles)
