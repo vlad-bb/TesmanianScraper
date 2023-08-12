@@ -12,3 +12,6 @@
 
 ## Запустити скрипт 
 ```python run.py```
+
+## Запустити телеграм бота
+https://t.me/tesmania_news_bot
