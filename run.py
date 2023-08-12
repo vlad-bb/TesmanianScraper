@@ -3,16 +3,15 @@ import json
 import asyncio
 import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
-from main import Scrapper
-
-sc = Scrapper()
-sc.login()
+from dotenv import dotenv_values
+from main import get_chat_engine
 
 """Settings"""
-TOKEN = '6140119080:AAEbu6Xs9anI1czP_TGRUDZxWjibJMjXHqY'
+config = dotenv_values(".env")
+TOKEN = config.get("TG_TOKEN")
 bot = Bot(TOKEN)
 dp = Dispatcher(bot)
-
+chat_engine = get_chat_engine()
 users_storage = 'data/users_storage.json'
 
 
@@ -44,28 +43,24 @@ async def start_command(message: types.Message, ):
     fullname_name = message.from_user.full_name
     user_id = message.from_user.id
     add_user(user_id, fullname_name)
-    info = f'Hello {fullname_name}!\n' \
-           f'This is Tesmanian News Chanel'
+    info = f'Hello {fullname_name}!\n'
     await message.answer(info)
 
 
-async def send_fresh_news():
-    """Функція відправки свіжих новин"""
-    users = get_users()
-    news = sc.check_news()
-    if news:
-        for article in news:
-            for user in users:
-                info = f'{list(article.values())[0]}\n' \
-                       f'{list(article.keys())[0]}'
-                print(f'News was sent to {user}')
-                await bot.send_message(user, text=info)
+@dp.message_handler()
+async def chat_handler(message: types.Message):
+    """Функція оборобки запиту від користувача"""
+    print(f"Message from user {message.from_user.first_name}: {message.text}")
+    await message.answer("Please wait...")
+    response = chat_engine.chat(message.text)
+    await message.delete()
+    await message.answer(response.response)
 
 
 async def scheduler():
     """Планувальник задач"""
     try:
-        aioschedule.every(15).seconds.do(send_fresh_news)
+        aioschedule.every(15).seconds.do("some func here")
         while True:
             await aioschedule.run_pending()
             await asyncio.sleep(5)
@@ -75,7 +70,7 @@ async def scheduler():
 
 async def on_startup(_):
     """Запуск планувальника задач при старті бота"""
-    asyncio.create_task(scheduler())
+    # asyncio.create_task(scheduler())
     print('TelegramBot running...')
 
 
