@@ -53,7 +53,7 @@ async def chat_handler(message: types.Message):
     print(f"Message from user {message.from_user.first_name}: {message.text}")
     await message.answer("Please wait...")
     response = chat_engine.chat(message.text)
-    await message.delete()
+
     await message.answer(response.response)
 
 
